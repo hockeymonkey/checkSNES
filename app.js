@@ -14,7 +14,7 @@ const emailPass = process.env.EMAIL_PASS;
 
 
 //---------------------------------------------------
-// Declare variable for email list and print to console..
+// Declare variable for email list and print to console.
 //---------------------------------------------------
 const emailList = fs.readFileSync('email-list.txt').toString();
 console.log('Notification email list: ' + emailList);
