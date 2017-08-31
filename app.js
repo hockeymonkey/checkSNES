@@ -84,16 +84,6 @@ request(url, function(err, resp, body){
 
       // For testing.
       //console.log('let notLive equals: ' + notLive);
-
-
-      fs.writeFile('html_from_website.html', notLive, function(err){
-        if(err){
-          console.log(err);
-        }
-        else{
-          console.log('HTML saved to new document "html_from_website.html"!');
-        }
-      });
     }
 });
 
@@ -110,9 +100,17 @@ let checkSNES = setInterval(function(){
   request(url, function(err, resp, body){
     if(err){
       console.log(err);
+
+      // Save HTML if err on request.
+      let d = new Date();
+      let timeSent = d.getTime();
+      fs.writeFile('html-when-request-error-' + timeSent + '.html', body, function(err){
+        console.log('HTML saved to new document "html-when-request-error"!');
+      });
     }
     else{
       let $ = cheerio.load(body);
+
 			// If div containing "Coming Soon!" text changes, send notification email.
       if(($('.salesComments > span').attr('data-selenium') != 'notStock') || ($('.salesComments > span').text() != 'New Item - Coming Soon')){
         // Send notification email.
@@ -122,6 +120,13 @@ let checkSNES = setInterval(function(){
           }
           else{
             console.log('Notification email sent: ' + info.response + ' ' + Date() + ' data-selenium=' + $(".salesComments > span").attr("data-selenium") + ' .text()=' + $(".salesComments > span").text());
+            
+            // Save HTML for page when email is sent.
+            let d = new Date();
+            let timeSent = d.getTime();
+            fs.writeFile('html-when-email-sent-' + timeSent + '.html', body, function(err){
+              console.log('HTML saved to new document "html-when-email-sent"!');
+            });
           }
         });
 
