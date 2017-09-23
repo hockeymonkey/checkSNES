@@ -71,74 +71,74 @@ transporter.sendMail(mailOptionsTest, function(err, info){
 
 //---------------------------------------------------
 // Declare variable containing 'not live' html on page.
+// If can't load html, throw error, otherwise start
+// checking website for changes at regular intervals.
 //---------------------------------------------------
 let notLive;
 request(url, function(err, resp, body){
   if(err){
       throw err;
-    }
-    else{
-      let $ = cheerio.load(body);
+  }
+  else{
+    let $ = cheerio.load(body);
 
-      notLive = $('.salesComments > span').text();
+    notLive = $('.salesComments > span').text();
 
-      // For testing.
-      //console.log('let notLive equals: ' + notLive);
-    }
-});
+    // For testing.
+    //console.log('let notLive equals: ' + notLive);
 
+    //---------------------------------------------------
+    // Check website at every interval for a change, and
+    // send email if site has changed.
+    //---------------------------------------------------
+    const interval = 30000; // Interval set in milliseconds.
 
+    let checkSNES = setInterval(function(){
+      // Send request for web page and load html received using cheerio.js module.
+      request(url, function(err, resp, body){
+        if(err){
+          console.log(err);
 
-//---------------------------------------------------
-// Check website at every interval for a change, and
-// send email if site has changed.
-//---------------------------------------------------
-const interval = 30000; // Interval set in milliseconds.
+          // Save HTML if err on request.
+          let d = new Date();
+          let timeSent = d.getTime();
+          fs.writeFile('html-when-request-error-' + timeSent + '.html', body, function(err){
+            console.log('HTML saved to new document "html-when-request-error"!');
+          });
 
-let checkSNES = setInterval(function(){
-	// Send request for web page and load html received using cheerio.js module.
-  request(url, function(err, resp, body){
-    if(err){
-      console.log(err);
+          // Kill script if error on request.
+          clearInterval(checkSNES);
+        }
+        else{
+          let $ = cheerio.load(body);
 
-      // Save HTML if err on request.
-      let d = new Date();
-      let timeSent = d.getTime();
-      fs.writeFile('html-when-request-error-' + timeSent + '.html', body, function(err){
-        console.log('HTML saved to new document "html-when-request-error"!');
-      });
+          // If div containing "Coming Soon!" text changes, send notification email.
+          if(($('.salesComments > span').attr('data-selenium') != 'notStock') || ($('.salesComments > span').text() != 'New Item - Coming Soon')){
+            // Send notification email.
+            transporter.sendMail(mailOptions, function(err, info){
+              if(err){
+                console.log(err);
+              }
+              else{
+                console.log('Notification email sent: ' + info.response + ' ' + Date() + ' data-selenium=' + $(".salesComments > span").attr("data-selenium") + ' .text()=' + $(".salesComments > span").text());
+                
+                // Save HTML for page when email is sent.
+                let d = new Date();
+                let timeSent = d.getTime();
+                fs.writeFile('html-when-email-sent-' + timeSent + '.html', body, function(err){
+                  console.log('HTML saved to new document "html-when-email-sent"!');
+                });
+              }
+            });
 
-			// Kill script if error on request.
-			clearInterval(checkSNES);
-    }
-    else{
-      let $ = cheerio.load(body);
-
-			// If div containing "Coming Soon!" text changes, send notification email.
-      if(($('.salesComments > span').attr('data-selenium') != 'notStock') || ($('.salesComments > span').text() != 'New Item - Coming Soon')){
-        // Send notification email.
-        transporter.sendMail(mailOptions, function(err, info){
-          if(err){
-            console.log(err);
+            // After sending alert email, kill script.
+            clearInterval(checkSNES);
           }
           else{
-            console.log('Notification email sent: ' + info.response + ' ' + Date() + ' data-selenium=' + $(".salesComments > span").attr("data-selenium") + ' .text()=' + $(".salesComments > span").text());
-            
-            // Save HTML for page when email is sent.
-            let d = new Date();
-            let timeSent = d.getTime();
-            fs.writeFile('html-when-email-sent-' + timeSent + '.html', body, function(err){
-              console.log('HTML saved to new document "html-when-email-sent"!');
-            });
+            console.log('Nothing to see here. ' + Date());
           }
-        });
-
-        // After sending alert email, kill script.
-        clearInterval(checkSNES);
-      }
-      else{
-        console.log('Nothing to see here. ' + Date());
-      }
-    }
-  });
-}, interval);
+        }
+      });
+    }, interval);
+  }
+});
