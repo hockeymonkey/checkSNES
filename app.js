@@ -107,6 +107,9 @@ let checkSNES = setInterval(function(){
       fs.writeFile('html-when-request-error-' + timeSent + '.html', body, function(err){
         console.log('HTML saved to new document "html-when-request-error"!');
       });
+
+			// Kill script if error on request.
+			clearInterval(checkSNES);
     }
     else{
       let $ = cheerio.load(body);
