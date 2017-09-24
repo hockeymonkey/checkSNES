@@ -26,15 +26,6 @@ const testEmailTo = 'raph' + 'ael' + 'ras' + 'hkin@' + 'gm' + 'ail.c' + 'om';
 
 
 //---------------------------------------------------
-// Declare variable for the web page url.
-//---------------------------------------------------
-const url = 'https://www.bhphotovideo.com/c/product/1347308-REG/nintendo_snes_super_nintendo_classic_edition.html';
-
-// URL for testing.
-//const url = 'http://raphaelrashkin.com/test.html';
-
-
-//---------------------------------------------------
 // Email Options.
 //---------------------------------------------------
 const transporter = nodemailer.createTransport({
@@ -68,6 +59,16 @@ transporter.sendMail(mailOptionsTest, function(err, info){
     console.log('Test email sent: ' + info.response);
   }
 });
+
+
+//---------------------------------------------------
+// Declare variable for the web page url.
+//---------------------------------------------------
+const url = 'https://www.bhphotovideo.com/c/product/1347308-REG/nintendo_snes_super_nintendo_classic_edition.html';
+
+// URL for testing.
+//const url = 'http://raphaelrashkin.com/test.html';
+
 
 //---------------------------------------------------
 // Declare variable containing 'not live' html on page.
